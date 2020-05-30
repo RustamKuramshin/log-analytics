@@ -1,0 +1,36 @@
+---
+- name: Deploy ELK Stack
+  hosts: alpha-logs
+  vars:
+    elk_remote_dir: "~/elk"
+  become: no
+  gather_facts: yes
+  tasks:
+  - name: Create ELK dir
+    file:
+      path: "{{ elk_remote_dir }}"
+      state: directory
+  - name: Copy ELK dirs and conf
+    copy:
+      src: "./{{ item }}"
+      dest: "{{ elk_remote_dir }}"
+    with_items:
+      - elasticsearch
+      - kibana
+      - logstash
+      - docker-compose.yml
+      - .env
+  - name: Down ELK
+    shell:
+      cmd: "docker-compose down --rmi all || true"
+      chdir: "{{ elk_remote_dir }}/"
+    register: docker_compose_down_log
+  - debug:
+      var: docker_compose_down_log.stdout_lines
+  - name: Up ELK
+    shell:
+      cmd: "docker-compose up -d --force-recreate --build"
+      chdir: "{{ elk_remote_dir }}/"
+    register: docker_compose_up_log
+  - debug:
+      var: docker_compose_up_log.stdout_lines

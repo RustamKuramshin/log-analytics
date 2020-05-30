@@ -1,0 +1,71 @@
+---
+- name: Deploy Filebeat
+  hosts: yourserver
+  vars:
+    logstash: "yourserver:5044"
+    kibana: "yourserver:5601"
+    filebeat_remote_dir: "~/filebeat"
+    filebeat_docker_alias: wfilebeat
+    logs_files_volumes: >
+                        [{% for log_file_path in hostvars[inventory_hostname]['logs']['path'] %}
+                          '{{ log_file_path }}:{{ log_file_path }}'{% if not loop.last %},{% endif %}
+                          {% endfor %}]
+  become: no
+  gather_facts: yes
+  tasks:
+  - name: Create Filebeat dir
+    file:
+      path: "{{ filebeat_remote_dir }}"
+      state: directory
+  - name: Copy Filebeat dir
+    copy:
+      src: ./filebeat/
+      dest: "{{ filebeat_remote_dir }}/"
+  - name: Copy config
+    template:
+      src: ./templates/filebeat.yml.j2
+      dest: "{{ filebeat_remote_dir }}/filebeat.yml"
+
+  - name: Build Filebeat image
+    docker_image:
+      name: "{{ filebeat_docker_alias }}"
+      tag: "{{ filebeat_docker_alias }}"
+      build:
+        path: "{{ ansible_env.HOME }}/filebeat"
+        nocache: yes
+      source: build
+      force_source: yes
+    register: docker_build_info
+
+  - debug:
+      var: docker_build_info.image
+
+  - name: Run Filebeat container
+    docker_container:
+      name: "{{ filebeat_docker_alias }}"
+      image: "{{ docker_build_info.image.Id }}"
+      restart_policy: always
+      volumes: "{{ logs_files_volumes }}"
+    register: docker_run_info
+
+  - debug:
+      var: docker_run_info.container
+
+  - name: Docker system prune
+    shell: docker system prune -a -f
+    register: docker_prune_info
+
+  - debug:
+      var: docker_prune_info.stdout_lines
+
+#  - name: Stop Filebeat container
+#    shell: docker container stop {{ filebeat_docker_alias }} || true
+#  - name: Remove Filebeat
+#    shell: docker container rm {{ filebeat_docker_alias }} || true
+#  - name: Build and run Filebeat
+#    shell:
+#      cmd: "docker build -t filebeat . && docker run --name filebeat {% for log_file_path in hostvars[inventory_hostname]['logs']['path'] %}-v {{ log_file_path }}:{{ log_file_path }} {% endfor %}-d --restart always filebeat"
+#      chdir: "{{ filebeat_remote_dir }}/"
+#    register: docker_build_and_run_log
+#  - debug:
+#      var: docker_build_and_run_log.stdout_lines

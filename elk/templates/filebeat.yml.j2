@@ -1,0 +1,31 @@
+filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+  {% for log_file_path in hostvars[inventory_hostname]['logs']['path'] %}
+    - {{ log_file_path }}
+  {% endfor %}
+
+filebeat.config:
+  modules:
+    path: ${path.config}/modules.d/*.yml
+    reload.enabled: false
+
+setup.kibana:
+  host: "{{ kibana }}"
+  username: "elastic"
+  password: "changeme"
+
+setup.dashboards.enabled: true
+setup.dashboards.index: "logstash-*"
+
+processors:
+- add_host_metadata: ~
+- add_fields:
+    fields:
+      servicename: {{ hostvars[inventory_hostname]['logs']['servicename'] }}
+      hostname: {{ inventory_hostname }}
+
+output.logstash:
+  enabled: true
+  hosts: ["{{ logstash }}"]

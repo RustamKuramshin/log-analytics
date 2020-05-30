@@ -1,0 +1,23 @@
+---
+- name: Log volume analysis
+  hosts: all
+  vars:
+    debug_msg: "{{ item.stdout }}"
+  become: no
+  gather_facts: no
+  tasks:
+  - name: Analysis files size
+    shell: "du -b {{ item }}  | cut -f1"
+    with_items: "{{ hostvars[inventory_hostname]['logs'] }}"
+    register: du_info
+  - name: Save to file
+    local_action: shell mkdir -m777 -p ./log && echo "{{ debug_msg }}" >> ./log/file_size.log && chmod -R 777 ./log/*.log
+    with_items: "{{ du_info.results }}"
+
+  - name: Analysis unpack files size
+    shell: "{% if item|length %} gunzip -f -k {{ item }}.gz && du -b {{ item }} | cut -f1 && rm -rf {{ item }} {% else %} echo '0' {% endif %}"
+    with_items: "{{ hostvars[inventory_hostname]['archives'] }}"
+    register: unpack_info
+  - name: Save to file
+    local_action: shell mkdir -m777 -p ./log && echo "{{ debug_msg }}" >> ./log/unpack_file_size.log && chmod -R 777 ./log/*.log
+    with_items: "{{ unpack_info.results }}"

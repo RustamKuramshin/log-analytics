@@ -1,0 +1,51 @@
+all:
+  children:
+    service1:
+      hosts:
+        server1.ru:
+          logs:
+            - /var/log/your/service.log
+            - /var/log/your/service.err
+          archives:
+            - /var/log/your/service.log.2
+            - /var/log/your/service.err.2
+      vars:
+        ansible_ssh_private_key_file: ./ssh_keys/service
+        ansible_user: user
+        ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
+    service2:
+      hosts:
+        server2.ru:
+          logs:
+            - /var/log/your/service.log
+          archives:
+      vars:
+        ansible_ssh_private_key_file: ./ssh_keys/service
+        ansible_user: user
+        ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
+    service3:
+      hosts:
+        server3.ru:
+          logs:
+            - /var/log/your/service.err
+            - /var/log/your/service.log
+          archives:
+            - /var/log/your/service.err.1
+            - /var/log/your/service.log.1
+      vars:
+        ansible_ssh_private_key_file: ./ssh_keys/service
+        ansible_user: user
+        ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
+    service4:
+      hosts:
+        server4.ru:
+          logs:
+            - /var/log/your/service.err
+            - /var/log/your/service.log
+          archives:
+            - /var/log/your/service.err.2
+            - /var/log/your/service.log.2
+      vars:
+        ansible_ssh_private_key_file: ./ssh_keys/service
+        ansible_user: user
+        ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'

@@ -1,0 +1,49 @@
+all:
+  children:
+    service1:
+      hosts:
+        server1.ru:
+          logs:
+            path:
+              - /var/log/nginx/access.log
+              - /var/log/nginx/error.log
+            servicename: service1
+        server2.ru:
+          logs:
+            path:
+              - /var/log/nginx/access.log
+              - /var/log/nginx/error.log
+            servicename: service2
+        server3.ru:
+          logs:
+            path:
+              - /var/log/your/service.log
+              - /var/log/your/service.err
+            servicename: service3
+        server4.ru:
+          logs:
+            path:
+              - /var/log/your/service.log
+              - /var/log/your/service.err
+            servicename: service4
+        server5.ru:
+          logs:
+            path:
+              - /var/log/your/service.log
+              - /var/log/your/service.err
+            servicename: service5
+        server6.ru:
+          logs:
+            path:
+              - /var/log/your/service
+            servicename: service6
+      vars:
+        ansible_user: user
+        ansible_ssh_private_key_file: "./ssh_keys/admin_key"
+    alpha-logs:
+      hosts:
+        server7.ru:
+          ansible_python_interpreter: /usr/bin/python3
+      vars:
+        ansible_user: user
+        ansible_ssh_private_key_file: "./ssh_keys/alpha-logs"

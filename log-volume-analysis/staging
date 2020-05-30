@@ -1,0 +1,7 @@
+[service1]
+server1.ru
+server2.ru
+
+[service1:vars]
+ansible_ssh_private_key_file=./ssh_keys/service
+ansible_user=user
